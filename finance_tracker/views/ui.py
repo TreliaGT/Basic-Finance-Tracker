@@ -4,7 +4,7 @@ from datetime import datetime, date
 
 from includes.models import Transactions
 from includes.db import add_transaction, close_connection, remove_transaction , get_all_transactions
-
+from includes.export import export_transactions_to_excel
 
 class FinanceTrackerApp:
     def __init__(self, root):
@@ -71,7 +71,7 @@ class FinanceTrackerApp:
         delete_button = tk.Button(action_frame, text="Delete", bg='red', fg='white' , command=self.delete_selected)
         delete_button.grid(row=0, column=7, padx=5)  
 
-        export_button = tk.Button(action_frame, text="Export", bg='green', fg='white')
+        export_button = tk.Button(action_frame, text="Export", bg='green', fg='white' ,  command=lambda: export_transactions_to_excel(self.tree, message_callback=self.show_message))
         export_button.grid(row=0, column=8, padx=5)  
 
         dummy_button = tk.Button(action_frame, text="Dummy", bg='blue', fg='white' , command=self.dummy_data)
@@ -270,3 +270,7 @@ class FinanceTrackerApp:
             trans_id = add_transaction(transaction)
             # Insert into treeview
             self.tree.insert("", "end", iid=str(trans_id), values=(transaction.date, transaction.type, f"{transaction.amount:.2f}", transaction.category, transaction.notes))
+    
+    # Creates a message
+    def show_message(self, text, color):
+        self.message_var.config(text=text, bg=color)
