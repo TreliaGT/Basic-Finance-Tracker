@@ -1,22 +1,35 @@
 import pandas as pd
-import sqlite3
 
-def export_transactions_to_excel(db_path='transactions.db', output_file='transactions_export.xlsx'):
-    # Connect to your SQLite database
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
+def export_transactions_to_excel(treeview, output_file='transactions_export.xlsx', message_callback=None):
+    """
+    Export transactions from a given Treeview widget to an Excel file.
+    
+    Parameters:
+    - treeview: ttk.Treeview instance containing the transactions.
+    - output_file: filename to save the Excel file.
+    - message_callback: optional function to send messages (like success or errors).
+    """
+    transactions = []
+    for item_id in treeview.get_children():
+        row = treeview.item(item_id)['values']
+        transactions.append({
+            "Date": row[0],
+            "Type": row[1],
+            "Amount": row[2],
+            "Category": row[3],
+            "Notes": row[4]
+        })
 
-    # Query all transactions
-    cursor.execute("SELECT * FROM transactions")
-    rows = cursor.fetchall()
-    columns = [description[0] for description in cursor.description]
-
-    # Convert to DataFrame and export
-    df = pd.DataFrame(rows, columns=columns)
-    df.to_excel(output_file, index=False)
-
-    print(f"✅ Transactions exported to {output_file}")
-
-    # Clean up
-    cursor.close()
-    conn.close()
+    if not transactions:
+        if message_callback:
+            message_callback("No transactions to export.", "red")
+        return
+    
+    df = pd.DataFrame(transactions)
+    try:
+        df.to_excel(output_file, index=False)
+        if message_callback:
+            message_callback(f"Transactions exported to {output_file}", "green")
+    except Exception as e:
+        if message_callback:
+            message_callback(f"Error exporting: {e}", "red")
